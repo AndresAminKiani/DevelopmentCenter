@@ -1,3 +1,6 @@
+Im_in = imgDS_prob1_b4{9};
+
+%%
 shiftBank = zeros(size(Im_in, 4), 2);
 time = 12;
 
@@ -8,7 +11,7 @@ for trial = 1 : size(Im_in, 4)
 
    if nansum(nansum(HeatMap)) % if empty move on
         pixValue = 0; righShift = 0; 
-        coordinate = 2;
+        coordinate = 1;
         while pixValue == 0
             % horizontal shift
             pixValue = HeatMap(size(HeatMap, 1)/2, size(HeatMap, 2) - righShift);
@@ -17,7 +20,7 @@ for trial = 1 : size(Im_in, 4)
         end
         
         pixValue = 0; bottomShift = 0;
-        coordinate = 1;
+        coordinate = 2;
         while pixValue == 0
             % vertical shift
             pixValue = HeatMap(size(HeatMap, 1) - bottomShift, size(HeatMap, 2)/2);
@@ -26,4 +29,14 @@ for trial = 1 : size(Im_in, 4)
         end
    end
    trial
+end
+
+%% Apply translation
+clear I
+shiftIm = squeeze(Im_in(:, :, time, :));
+shiftIm(isnan(shiftIm)) = 0;
+for trial = 1 : size(shiftIm, 3)
+    Map = shiftIm(:, :, trial);
+    I(:, :, trial) = imtranslate(Map, [shiftBank(trial, :)]);
+    trial
 end
