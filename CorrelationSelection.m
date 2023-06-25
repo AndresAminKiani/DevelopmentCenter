@@ -14,24 +14,24 @@ load B4.mat
 % Image space parameters
 col = 120 : 250;
 row = 50 : 250;
-filterSize = 3;
+filterSize = 4;
 
 % Image dataset selection
 element = 9; 
 Img{1} = imgDS_prob1_b4{element}; % select image
 Img{2} = imgDS_prob1_b4{element + 9}; % select conjugate image 
-correlationThreshold = .7;
+correlationThreshold = .5;
 
 % Temporal parameter
-time = 15;
+time = 14;
 
 % NAN help
 Img{1}(isnan(Img{1})) = 0;
 Img{2}(isnan(Img{2})) = 0;
 
-clear correlationBank
+clear correlationBank Im ImgBank
 for side = [1 2]
-    for trial = 1 : size(Img{side}, 3)
+    for trial = 1 : size(Img{side}, 4)
         Im{1} = imgaussfilt(Img{side}(row, col, time, 1), filterSize);
         Im{2}= imgaussfilt(Img{side}(row, col, time, trial), filterSize);
         M = fitlm(Im{2}(:), Im{1}(:));
