@@ -20,10 +20,10 @@ filterSize = 3;
 element = 9; 
 Img{1} = imgDS_prob1_b4{element}; % select image
 Img{2} = imgDS_prob1_b4{element + 9}; % select conjugate image 
-correlationThreshold = .6;
+correlationThreshold = .7;
 
 % Temporal parameter
-time = 12;
+time = 15;
 
 % NAN help
 Img{1}(isnan(Img{1})) = 0;
@@ -31,7 +31,7 @@ Img{2}(isnan(Img{2})) = 0;
 
 clear correlationBank
 for side = [1 2]
-    for trial = 1 : size(Img{side}, 4)
+    for trial = 1 : size(Img{side}, 3)
         Im{1} = imgaussfilt(Img{side}(row, col, time, 1), filterSize);
         Im{2}= imgaussfilt(Img{side}(row, col, time, trial), filterSize);
         M = fitlm(Im{2}(:), Im{1}(:));
@@ -44,3 +44,9 @@ for side = [1 2]
 end
 disp(['Number of trials above correlation threshold: ', num2str(sum(correlationBank{1, 2})), ' and ', ...
     num2str(sum(correlationBank{2, 2})), ' for the conjugate image,'])
+
+A = ImgMeanTrial(:, :, 1);
+B = ImgMeanTrial(:, :, 2);
+scatter(B(:), A(:))
+fitlm(B(:), A(:))
+axis equal
