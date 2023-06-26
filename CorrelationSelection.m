@@ -55,7 +55,8 @@ axis equal
 col = 120 : 250;
 row = 50 : 250;
 filterSize = 4;
-t = 1;
+
+clear ElementBankTotal
 for element = [4, 9] 
     % Image dataset selection
     Img{1} = imgDS_prob1_b4{element}; % select image
@@ -63,13 +64,13 @@ for element = [4, 9]
     correlationThreshold = .5;
     
     % Temporal parameter
-    time = 14;
+    time = 12;
     
     % NAN help
     Img{1}(isnan(Img{1})) = 0;
     Img{2}(isnan(Img{2})) = 0;
     
-    clear correlationBank Im ImgBank ElementBankTotal
+    clear correlationBank Im ImgBank
     for side = [1 2]
         for trial = 1 : size(Img{side}, 4)
             Im{1} = imgaussfilt(Img{side}(row, col, time, 1), filterSize);
@@ -81,8 +82,7 @@ for element = [4, 9]
          correlationBank{side, 2} = correlationBank{side} > correlationThreshold;
          ImgBank{side} = squeeze(imgaussfilt(Img{side}(row, col, time, correlationBank{side, 2}), filterSize));
          ImgMeanTrial(:, :, side) = nanmean(ImgBank{side}, 3);
-         ElementBankTotal(:, :, t, side) = ImgBank{side};
-         t = t + 1;
+         ElementBankTotal{side, element} = ImgBank{side};
     end
     disp(['Number of trials above correlation threshold: ', num2str(sum(correlationBank{1, 2})), ' and ', ...
         num2str(sum(correlationBank{2, 2})), ' for the conjugate image,'])
@@ -90,3 +90,13 @@ for element = [4, 9]
     ElementBank{side, element} = ImgMeanTrial(:, :, 1);
     ElementBank{side, element} = ImgMeanTrial(:, :, 2);
 end
+
+%%
+In = cat(3, ElementBankTotal{1, 4}, ElementBankTotal{1, 9});
+Out = cat(3, ElementBankTotal{2, 4}, ElementBankTotal{2, 9});
+mIn = mean(In, 3);
+mOut = mean(Out, 3);
+figure, 
+scatter(mOut(:), mIn(:))
+axis equal
+fitlm(mOut(:), mIn(:))
