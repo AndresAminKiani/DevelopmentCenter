@@ -1,101 +1,183 @@
-time = 12;
-trial = 1;
-
-Img = imgDS_prob1_b4{1};
-shiftBank = zeros(size(Img, 4), 4); % trial x 4 sides
-
-HeatMap = Img(:, :, time, trial);
-HeatMap(~isnan(HeatMap)) = 1;
-HeatMap(isnan(HeatMap)) = 0;
-
-%  if nansum(nansum(HeatMap)) % if empty move on
+trial = 1; time = 16; row = 50 : 250; col = 120 : 270; 
+Img = imgDS_prob1_b4{ trial };
+Img_Fixed = Img(row, col, time, trial);
+figure,
+imagesc(Img_Fixed);
 
 %%
-k = 0;
-while sum(colVector_L)  == 0
-%     colVector_R = HeatMap(:, end);
-    colVector_L = HeatMap(:, 1 + k);
-    
-%     rowVector_H = HeatMap(1, :);
-%     rowVector_L = HeatMap(end, :);
-k = k + 1;
-k
-end
+F = imrotate(Img_Fixed, -90, 'bilinear', 'crop');
+figure,
+subplot(2, 1, 1)
+imagesc(Img_Fixed);
 
-k = 0;
-while sum(colVector_R)  == 0
-    colVector_R = HeatMap(:, end - k);
-%     colVector_L = HeatMap(:, 1 + k);
-    
-%     rowVector_H = HeatMap(1, :);
-%     rowVector_L = HeatMap(end, :);
-k = k + 1;
-k
-end
+subplot(2, 1, 2)
+imagesc(F);
+fitlm(F(:), Img_Fixed(:))
 
-k = 0;
-while sum(rowVector_H)  == 0
-%     colVector_R = HeatMap(:, end - k);
-%     colVector_L = HeatMap(:, 1 + k);
-    
-    rowVector_H = HeatMap(1 + k, :);
-%     rowVector_L = HeatMap(end, :);
-k = k + 1;
-k
-end
-
-k = 0;
-while sum(rowVector_L) == 0
-%     colVector_R = HeatMap(:, end - k);
-%     colVector_L = HeatMap(:, 1 + k);
-    
-%     rowVector_H = HeatMap(1 + k, :);
-    rowVector_L = HeatMap(end - k, :);
-k = k + 1;
-k
+%%
+for trial = 1 : 16
+    time = 16; row = 50 : 250; col = 120 : 270; 
+    Img = imgDS_prob1_b4{ trial };
+    Img_Fixed = Img(row, col, time, trial);
+    subplot(4, 4, trial)
+    imagesc(Img_Fixed)
 end
 
 %%
 clc
-cV_L = 0; cV_R = 0; rV_H = 0; rV_L = 0;
-k = 0;
-colVector_L = zeros(size(HeatMap, 1), 1); colVector_R = zeros(size(HeatMap, 1), 1);
-rowVector_H = zeros(size(HeatMap, 2), 1); rowVector_L = zeros(size(HeatMap, 2), 1);
-
-while (sum(colVector_L)  == 0) || sum(colVector_R)  == 0 ||...
-        sum(rowVector_H)  == 0 || sum(rowVector_L) == 0
-    if sum(colVector_L) == 0
-        colVector_L = HeatMap(:, 1 + cV_L);
-        cV_L = cV_L + 1;
-    end
-        
-    if sum(colVector_R) == 0
-        colVector_R = HeatMap(:, end - cV_R);
-        cV_R = cV_R + 1;
-    end
-
-    if sum(rowVector_H) == 0
-        rowVector_H = HeatMap(1 + rV_H, :);
-        rV_H = rV_H + 1;
-    end
-
-    if sum(rowVector_L) == 0
-        rowVector_L = HeatMap(end - rV_L, :);
-        rV_L = rV_L + 1;
-    end
-    disp([num2str(cV_L),' ',num2str(cV_R),' ',num2str(rV_L),' ',num2str(rV_H)])
+clear A
+element = 1; k = 1;
+Img = imgDS_prob1_b4{ element };
+trial = 1; time = 16; row = 50 : 250; col = 120 : 270;
+Img_Fixed = Img(row, col, time, trial);
+Img_Fixed(isnan(Img_Fixed)) = 0;
+Img_Fixed = imgaussfilt(Img_Fixed, 4);
+tic
+for trial = 1 : size(Img, 4)
+        for r = 1 - min(row) : 316 - max(row)
+            for c = 1 - min(col) : 316 - max(col)
+                for rot = -5 : 5
+                    F = Img(row + r, col + c, time, trial);
+                    F(isnan(F)) = 0;
+                    F = imrotate(F, rot, 'bilinear', 'crop');
+                    M = fitlm(F(:), Img_Fixed(:));
+                    x = sqrt(M.Rsquared.Ordinary);
+                    A(k, :) = [trial, r, c, rot, x];
+                    k = k + 1;
+                end
+                disp([num2str(trial),' ',num2str(r),' ',num2str(c)])
+            end
+        end
 end
+toc
 
 %%
-HeatMap2 = HeatMap;
-figure, 
-HeatMap2(rV_H, 316 - cV_R + 1) = 2;
-HeatMap2(316 - rV_L + 1, cV_L) = 2;
-imagesc(HeatMap2)
+time = 16; 
+Img = imgDS_prob1_b4{ 1 };
+Img_A = Img(:, :, time, 1);
+Img_B = Img(:, :, time, 20);
+
+figure,
+subplot(2, 1, 1)
+imagesc(Img_A);
+subplot(2, 1, 2)
+imagesc(Img_B);
+
+clc
+clear A
+element = 1; k = 1;
+Img = imgDS_prob1_b4{ element };
+trial = 1; time = 16; row = 50 : 250; col = 120 : 270;
+Img_Fixed = Img(row, col, time, trial);
+Img_Fixed(isnan(Img_Fixed)) = 0;
+Img_Fixed = imgaussfilt(Img_Fixed, 4);
+tic
+for trial = 20
+        for r = 1 - min(row) : 316 - max(row)
+            for c = 1 - min(col) : 316 - max(col)
+                for rot = -5 : 5
+                    F = Img(row + r, col + c, time, trial);
+                    F(isnan(F)) = 0;
+                    F = imrotate(F, rot, 'bilinear', 'crop');
+                    M = fitlm(F(:), Img_Fixed(:));
+                    x = sqrt(M.Rsquared.Ordinary);
+                    A(k, :) = [trial, r, c, rot, x];
+                    k = k + 1;
+                end
+                disp([num2str(trial),' ',num2str(r),' ',num2str(c)])
+            end
+        end
+end
+toc
 
 %%
-HeatMap2 = HeatMap;
+time = 16; 
+Img = imgDS_prob1_b4{ 1 };
+Img_A = Img(:, :, time, 1);
+Img_B = Img(:, :, time, 20);
+
+figure,
+subplot(2, 1, 1)
+imagesc(Img_A);
+subplot(2, 1, 2)
+imagesc(Img_B);
+
+clc
+clear A
+element = 1; k = 1;
+Img = imgDS_prob1_b4{ element };
+trial = 1; time = 16; row = 50 : 250; col = 120 : 270;
+Img_Fixed = Img(row, col, time, trial);
+Img_Fixed(isnan(Img_Fixed)) = 0;
+Img_Fixed = imgaussfilt(Img_Fixed, 4);
+tic
+for trial = 20
+        for r = 1 - min(row) : 316 - max(row)
+            for c = 1 - min(col) : 316 - max(col)
+                for rot = -5 : 5
+                    F = Img(row + r, col + c, time, trial);
+                    F(isnan(F)) = 0;
+                    F = imrotate(F, rot, 'bilinear', 'crop');
+                    Ff = imgaussfilt(F, 4);
+                    M = fitlm(Ff(:), Img_Fixed(:));
+                    x = sqrt(M.Rsquared.Ordinary);
+                    A(k, :) = [trial, r, c, rot, x];
+                    k = k + 1;
+                end
+                disp([num2str(trial),' ',num2str(r),' ',num2str(c)])
+            end
+        end
+end
+toc
+
+%%
+Av = A(:, end);
+[V, L] = max(Av);
+
+%%
+F = Img(row + A(L, 2), col + A(L, 3), time, trial);
+F(isnan(F)) = 0;
+F = imrotate(F, A(L, 4), 'bilinear', 'crop');
+Ff = imgaussfilt(F, 4);
+
 figure, 
-HeatMap2(rV_H, 316 - cV_R + 1) = 2;
-HeatMap2(316 - rV_L + 1, cV_L) = 2;
-imagesc(HeatMap2)
+subplot(3, 1, 1)
+imagesc(Img_Fixed)
+
+subplot(3, 1, 2)
+imagesc(F)
+
+subplot(3, 1, 3)
+imagesc(Ff)
+
+%%
+time = 16; trial = 1;
+Img = imgDS_prob1_b4{ trial };
+ImgMain = Img(:, :, time, trial);
+ImgProb = Img(:, :, time, 20);
+
+ImgProbT = ImgProb;
+ImgProbT(isnan(ImgProbT)) = 0;
+ImgProbT = imtranslate(ImgProbT, [A(L, 2), A(L, 3)]);
+ImgProbT = imrotate(ImgProbT, A(L, 4), 'bilinear', 'crop');
+ImgProbT2 = ImgProbT;
+ImgProbT2(ImgProbT2 == 0) = nan;
+
+% ImgMain ImgProb ImgProbT
+figure, 
+subplot(4, 2, [1 2])
+imagesc(ImgMain)
+
+subplot(4, 2, [3 4])
+imagesc(ImgProb)
+
+subplot(4, 2, [5 6])
+imagesc(ImgProbT2)
+
+subplot(4, 2, 7)
+A = imgaussfilt(ImgMain(row, col), 4); B =imgaussfilt(ImgProb(row, col), 4);
+scatter(A(:), B(:))
+
+subplot(4, 2, 8)
+A = imgaussfilt(ImgMain(row, col), 4); B =imgaussfilt(ImgProbT(row, col), 4);
+scatter(A(:), B(:))
